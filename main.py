@@ -18,19 +18,19 @@ class Runable(BaseModel):
     name: str | None = None
     
     def invoke(self, data:Any) -> Any:
-        raise NotImplemented
+        raise NotImplementedError
     
     def __or__(self, other:Any) -> RunableSequence:
         if isinstance(other, Runable):
             return RunableSequence(first=self, second=other)
         if callable(other):
             return RunableSequence(first=self, second=RunableLambda(func=other), name=other.__name__)
-        return NotImplemented
+        return NotImplementedError
     
     def __ror__(self, other: Any) -> Any:
         if callable(other):
             return RunableSequence(first=RunableLambda(func=other), second=self, name=other.__name__)
-        return NotImplemented
+        return NotImplementedError
     
 
 class RunableLambda(Runable[I, O]):
