@@ -1,18 +1,44 @@
 from transformers import pipeline
+from pydantic import BaseModel, ConfigDict
+from typing import Any, Callable
 
 #uv add transformers
 #uv add torch
+#uv add pydantic
 #uv add pprint (opt)
 
-# generator = pipline("text-generation", model="HuggingfaceTB/SmolLLM2-135-instruct")
+class Runable(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+    
+    def invoke(self, data:Any) -> Any:
+        raise NotImplemented
+    
+    def __or__(self, other:Any) -> RunableSequence:
+        if isinstance(other, Runable):
+            return RunableSequence(first=self, second=other)
+        if callable(other):
+            return RunableSequence(first=self, second=RunableLambda(func=other))
+        return NotImplemented
+    
+    def __ror__(self, other: Any) -> Any:
+        if callable(other):
+            return RunableSequence(first=RunableLambda(func=other), second=self)
+        return NotImplemented
+    
 
-# messages = {
-#     {"role":"system", "content": "you are a concise and witty AI tutor",},
-#     {"role": "user", "content": "Explain what tokens in NLP as a cooking metaphor",},
-# }
+class RunableLambda(Runable):
+    func: Callable[[Any], Any]
+    
+    def invoke(self, data: Any) -> Any:
+        return self.func(data)
+    
+class RunableSequence(Runable):
+    first: Runable
+    second: Runable
+    
+    def invoke(self, data: Any) -> Any:
+        return self.second.invoke(self.first.invoke(data))
 
-# response = generator(messages, max_new_tokens=150)
-# print(response[0]['generated_text'[-1]['content']])
 
 class SmolLLm:
     def __init__(self, model_name="HuggingFaceTB/SmolLM2-135M-Instruct"):
