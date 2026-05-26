@@ -72,7 +72,7 @@ class SentimentAnalyser(Runable[TicketInput, dict]):
             "summary": ticket.message[:40] + "..."
         }
 
-class TicketParser(Runable,[dict, ProcessedTicket]):
+class TicketParser(Runable[dict, ProcessedTicket]):
     name: str = "ticket_parser"
     
     def invoke(self, raw_dict: dict) -> ProcessedTicket:
